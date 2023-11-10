@@ -1,5 +1,5 @@
 
-grafi = list(graphs(8), augment = "vertices")
+grafi = list(graphs(8, augment = "vertices"))
 
 drevesa = [G for G in grafi if G.is_tree()]
 

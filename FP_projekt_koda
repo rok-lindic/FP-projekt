@@ -1,0 +1,70 @@
+
+grafi = list(graphs(8), augment = "vertices")
+
+drevesa = [G for G in grafi if G.is_tree()]
+
+for i in range(len(drevesa)):#pojdi čez vse povezane grafe
+    sigma = 0
+    sigma_tot = 0
+    for vozlisce in range(len(drevesa[i])):#povezani[i][vozlisce] je seznam sosedov
+        for nadalnje in range(vozlisce + 1, len(drevesa[i])):
+            sigma_tot += (len(drevesa[i][vozlisce])-len(drevesa[i][nadalnje]))^2
+            #"graf", i, vozlisce, nadalnje, len(povezani[i][vozlisce]), len(povezani[i][nadalnje]), "prva"
+            if nadalnje in drevesa[i][vozlisce]:
+                sigma += (len(drevesa[i][vozlisce])-len(drevesa[i][nadalnje]))^2
+                #vozlisce, nadalnje, len(povezani[i][vozlisce]), len(povezani[i][nadalnje])
+    #sigma_tot, sigma *  (len(drevesa[i])-2)
+    #if sigma_tot > sigma*(len(drevesa[i])-2):
+    #    "zavrnjeno", i
+    #    #drevesa[i].show()
+    if sigma_tot == sigma*(len(drevesa[i])-2):
+        "je pot",drevesa[i].is_path(), drevesa[i].show()
+
+    #sigma * (len(povezani)-2), sigma_tot
+
+###############################
+###############################
+︠SA
+from sage.graphs.graph_generators_pyx import RandomGNP
+import random
+from sage.graphs.generators.random import RandomBarabasiAlbert as RBA
+import numpy as np
+
+
+def sigma_tot (graf):
+    sigma_tot = 0
+    for vozlisce in range(len(graf)):
+        for nadaljne in range(vozlisce + 1, len(graf)):
+            sigma_tot += (len(graf[vozlisce])-len(graf[nadaljne]))^2
+    return sigma_tot
+
+
+def SA (st_vozlisc, T):#splošen povezan graf
+    scale = np.sqrt(T)
+    faktor = random.uniform(1,st_vozlisc)
+    start = RBA(st_vozlisc, faktor)#naključen graf
+    x = faktor
+    y = start
+    cur = sigma_tot(start)
+    #history = [(x, start, sigma_tot(y))]
+    for i in range(100):#pri 10000 rabi nekaj minutk, ampak lepo zmelje, pri 100 pogosteje nenatančno.
+        prop = min(max(faktor + np.random.uniform(-1,1,size = 1)*scale, 1),st_vozlisc-0.0001)
+        prop_graf = RBA(st_vozlisc, prop)
+        if np.log(np.random.rand())*T > (sigma_tot(prop_graf)-cur):
+            prop = x
+            prop_graf = y
+        x = prop
+        y = prop_graf
+        cur = sigma_tot(prop_graf)
+        T = 0.9*T#"hlajenje sistema"
+        #history.append((x,y, sigma_tot(y)))
+    return y.show(), sigma_tot(y)#, history##history če hočeš, da ti čisto za vse izpiše (nočeš), če maš manjše grafe lahko pogledaš
+
+SA(2,1)
+##########################
+##########################
+
+
+
+
+

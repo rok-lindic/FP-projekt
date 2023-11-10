@@ -9,16 +9,16 @@ for i in range(len(drevesa)):#pojdi čez vse povezane grafe
     for vozlisce in range(len(drevesa[i])):#povezani[i][vozlisce] je seznam sosedov
         for nadalnje in range(vozlisce + 1, len(drevesa[i])):
             sigma_tot += (len(drevesa[i][vozlisce])-len(drevesa[i][nadalnje]))^2
-            #"graf", i, vozlisce, nadalnje, len(povezani[i][vozlisce]), len(povezani[i][nadalnje]), "prva"
+            
             if nadalnje in drevesa[i][vozlisce]:
                 sigma += (len(drevesa[i][vozlisce])-len(drevesa[i][nadalnje]))^2
-                #vozlisce, nadalnje, len(povezani[i][vozlisce]), len(povezani[i][nadalnje])
+            
     #sigma_tot, sigma *  (len(drevesa[i])-2)
-    #if sigma_tot > sigma*(len(drevesa[i])-2):
-    #    "zavrnjeno", i
+    if sigma_tot > sigma*(len(drevesa[i])-2):
+        "zavrnjeno", i
     #    #drevesa[i].show()
     if sigma_tot == sigma*(len(drevesa[i])-2):
-        "je pot",drevesa[i].is_path(), drevesa[i].show()
+        "je pot",drevesa[i].is_path()#, drevesa[i].show() zakomentirani del še pokaže pot, da se lahko uporabnik vizualno prepriča
 
     #sigma * (len(povezani)-2), sigma_tot
 
@@ -39,7 +39,7 @@ def sigma_tot (graf):
     return sigma_tot
 
 
-def SA (st_vozlisc, T):#splošen povezan graf
+def SA (st_vozlisc, T, ponovitve ):#splošen povezan graf
     scale = np.sqrt(T)
     faktor = random.uniform(1,st_vozlisc)
     start = RBA(st_vozlisc, faktor)#naključen graf
@@ -47,7 +47,7 @@ def SA (st_vozlisc, T):#splošen povezan graf
     y = start
     cur = sigma_tot(start)
     #history = [(x, start, sigma_tot(y))]
-    for i in range(100):#pri 10000 rabi nekaj minutk, ampak lepo zmelje, pri 100 pogosteje nenatančno.
+    for i in range(ponovitve):
         prop = min(max(faktor + np.random.uniform(-1,1,size = 1)*scale, 1),st_vozlisc-0.0001)
         prop_graf = RBA(st_vozlisc, prop)
         if np.log(np.random.rand())*T > (sigma_tot(prop_graf)-cur):
@@ -58,8 +58,7 @@ def SA (st_vozlisc, T):#splošen povezan graf
         cur = sigma_tot(prop_graf)
         T = 0.9*T#"hlajenje sistema"
         #history.append((x,y, sigma_tot(y)))
-    return y.show(), sigma_tot(y)#, history##history če hočeš, da ti čisto za vse izpiše (nočeš), če maš manjše grafe lahko pogledaš
-
+    return y.show(), sigma_tot(y)#, history##history izpišemo če želimo pogledati, vse izbrane grafe, ki so na neki točki služili kot cur.
 SA(2,1)
 ##########################
 ##########################

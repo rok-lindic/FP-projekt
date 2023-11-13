@@ -34,18 +34,17 @@ from sage.graphs.generators.random import RandomBipartite as BP
 
 def sigma_tot (graf):
     sigma_tot = 0
-    for vozlisce in range(len(graf)):
-        for nadaljne in range(vozlisce + 1, len(graf)):
-            sigma_tot += (len(graf[vozlisce])-len(graf[nadaljne]))^2
-    return sigma_tot
-
-def sigma_tot_bp (graf):
-    sigma_tot = 0
-    stopnje = graf.degree_sequence()
-    for vozlisce in range(len(stopnje)):
-        for nadaljne in range(vozlisce + 1, len(stopnje)):
-            sigma_tot += (stopnje[vozlisce]-stopnje[nadaljne])^2
-    return sigma_tot
+    if graf.is_bipartite():
+      stopnje = graf.degree_sequence()
+      for vozlisce in range(len(stopnje)):
+          for nadaljne in range(vozlisce + 1, len(stopnje)):
+              sigma_tot += (stopnje[vozlisce]-stopnje[nadaljne])^2
+      return sigma_tot
+    else:
+      for vozlisce in range(len(graf)):
+          for nadaljne in range(vozlisce + 1, len(graf)):
+              sigma_tot += (len(graf[vozlisce])-len(graf[nadaljne]))^2
+      return sigma_tot
 
 def SA (st_vozlisc, T, ponovitve = 1000):#splošen povezan graf
     scale = np.sqrt(T)

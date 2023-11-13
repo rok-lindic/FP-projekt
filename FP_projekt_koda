@@ -24,12 +24,13 @@ for i in range(len(drevesa)):#pojdi čez vse povezane grafe
 
 ###############################
 ###############################
-︠SA
+SA
 from sage.graphs.graph_generators_pyx import RandomGNP
 import random
+from random import randint
 from sage.graphs.generators.random import RandomBarabasiAlbert as RBA
 import numpy as np
-
+from sage.graphs.generators.random import RandomBipartite as BP
 
 def sigma_tot (graf):
     sigma_tot = 0
@@ -38,8 +39,15 @@ def sigma_tot (graf):
             sigma_tot += (len(graf[vozlisce])-len(graf[nadaljne]))^2
     return sigma_tot
 
+def sigma_tot_bp (graf):
+    sigma_tot = 0
+    stopnje = graf.degree_sequence()
+    for vozlisce in range(len(stopnje)):
+        for nadaljne in range(vozlisce + 1, len(stopnje)):
+            sigma_tot += (stopnje[vozlisce]-stopnje[nadaljne])^2
+    return sigma_tot
 
-def SA (st_vozlisc, T, ponovitve ):#splošen povezan graf
+def SA (st_vozlisc, T, ponovitve = 1000):#splošen povezan graf
     scale = np.sqrt(T)
     faktor = random.uniform(1,st_vozlisc)
     start = RBA(st_vozlisc, faktor)#naključen graf
@@ -47,8 +55,8 @@ def SA (st_vozlisc, T, ponovitve ):#splošen povezan graf
     y = start
     cur = sigma_tot(start)
     #history = [(x, start, sigma_tot(y))]
-    for i in range(ponovitve):
-        prop = min(max(faktor + np.random.uniform(-1,1,size = 1)*scale, 1),st_vozlisc-0.0001)
+    for i in range(ponovitve):#pri 10000 rabi nekaj minutk, ampak lepo zmelje, pri 100 pogosteje nenatančno.
+        prop = min(max(x + np.random.uniform(-1,1,size = 1)*scale, 1),st_vozlisc-0.0001)
         prop_graf = RBA(st_vozlisc, prop)
         if np.log(np.random.rand())*T > (sigma_tot(prop_graf)-cur):
             prop = x
@@ -58,8 +66,32 @@ def SA (st_vozlisc, T, ponovitve ):#splošen povezan graf
         cur = sigma_tot(prop_graf)
         T = 0.9*T#"hlajenje sistema"
         #history.append((x,y, sigma_tot(y)))
-    return y.show(), sigma_tot(y)#, history##history izpišemo če želimo pogledati, vse izbrane grafe, ki so na neki točki služili kot cur.
-SA(2,1)
+    return y.show(), sigma_tot(y)#, history##history če hočeš, da ti čisto za vse izpiše (nočeš), če maš manjše grafe lahko pogledaš
+
+def SA_dvodelni (st_vozlisc, T, ponovitve = 100):#splošen povezan graf
+    scale = np.sqrt(T)
+    faktor = random.uniform(0,1)
+    n1 = randint(1, st_vozlisc-1)
+    n2 = st_vozlisc - n1
+    start = BP(n1, n2, faktor)#naključen graf
+    x = [n1, faktor]
+    y = start
+    cur = sigma_tot_bp(start)
+    #history = [(x, start, sigma_tot_bp(y))]
+    for i in range(ponovitve):#pri 10000 rabi nekaj minutk, ampak lepo zmelje, pri 100 pogosteje nenatančno.
+        prop = [int(max(min(floor(x[0] + np.random.uniform(-1,1,size = 1)*
+                             scale), st_vozlisc-1), 1)), float(max(min(x[1] + np.random.uniform(-1,1,size = 1)*scale, 0.999999),0.0000001))]
+        prop_graf = BP(prop[0], st_vozlisc - prop[0], prop[1])
+        if np.log(np.random.rand())*T > (sigma_tot_bp(prop_graf)-cur):
+            prop = x
+            prop_graf = y
+        x = prop
+        y = prop_graf
+        cur = sigma_tot_bp(prop_graf)
+        T = 0.9*T#"hlajenje sistema"
+        #history.append((x,y, sigma_tot(y)))
+    return y.show(), sigma_tot_bp(y)#, history##history če hočeš, da ti čisto za vse izpiše (nočeš), če maš manjše grafe lahko pogledaš
+
 ##########################
 ##########################
 

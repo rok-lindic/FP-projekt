@@ -46,7 +46,7 @@ def sigma_tot (graf):
               sigma_tot += (len(graf[vozlisce])-len(graf[nadaljne]))^2
       return sigma_tot
 
-def SA (st_vozlisc, T, ponovitve = 1000):#splošen povezan graf
+def SA (st_vozlisc, T, ponovitve = 1000):#dvodelen graf
     scale = np.sqrt(T)
     faktor = random.uniform(1,st_vozlisc)
     start = RBA(st_vozlisc, faktor)#naključen graf
@@ -54,7 +54,7 @@ def SA (st_vozlisc, T, ponovitve = 1000):#splošen povezan graf
     y = start
     cur = sigma_tot(start)
     #history = [(x, start, sigma_tot(y))]
-    for i in range(ponovitve):#pri 10000 rabi nekaj minutk, ampak lepo zmelje, pri 100 pogosteje nenatančno.
+    for i in range(ponovitve):
         prop = min(max(x + np.random.uniform(-1,1,size = 1)*scale, 1),st_vozlisc-0.0001)
         prop_graf = RBA(st_vozlisc, prop)
         if np.log(np.random.rand())*T > (sigma_tot(prop_graf)-cur):
@@ -87,9 +87,9 @@ def SA_dvodelni (st_vozlisc, T, ponovitve = 100):#splošen povezan graf
         x = prop
         y = prop_graf
         cur = sigma_tot_bp(prop_graf)
-        T = 0.9*T#"hlajenje sistema"
+        T = 0.9*T
         #history.append((x,y, sigma_tot(y)))
-    return y.show(), sigma_tot_bp(y)#, history##history če hočeš, da ti čisto za vse izpiše (nočeš), če maš manjše grafe lahko pogledaš
+    return y.show(), sigma_tot_bp(y)#, history
 
 ##########################
 ##########################

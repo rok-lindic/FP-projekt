@@ -1,0 +1,23 @@
+#zgeneriramo vse grafe na 8 vozliscih izmed katerih izberemo samo drevesa
+grafi = list(graphs(8, augment = "vertices"))
+drevesa = [G for G in grafi if G.is_tree()]
+
+#za vsako zgenerirano drevo preverimo, če trditev za res velja
+for i in range(len(drevesa)):
+    sigma = 0
+    sigma_tot = 0
+    #izracunamo STI in SI za posamezno drevo
+    for vozlisce in range(len(drevesa[i])): #povezani[i][vozlisce] je seznam sosedov
+        for nadalnje in range(vozlisce + 1, len(drevesa[i])):
+            sigma_tot += (len(drevesa[i][vozlisce]) - len(drevesa[i][nadalnje]))^2
+            
+            if nadalnje in drevesa[i][vozlisce]:
+                sigma += (len(drevesa[i][vozlisce]) - len(drevesa[i][nadalnje]))^2
+
+    #preverimo, da trditev res velja        
+    if sigma_tot > sigma*(len(drevesa[i]) - 2):
+        "zavrnjeno", i
+    if sigma_tot == sigma*(len(drevesa[i]) - 2):
+        "je pot", drevesa[i].is_path() #, drevesa[i].show() zakomentirani del se pokaze pot, da se lahko uporabnik vizualno preprica
+
+#za vsako drevo z 8 vozlisci trditev velja. Prav tako enakost velja samo za poti

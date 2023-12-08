@@ -1,0 +1,230 @@
+from sage.graphs.graph_generators_pyx import RandomGNP as RGNP
+import random
+from random import randint
+from sage.graphs.generators.random import RandomBarabasiAlbert as RBA
+import numpy as np
+from sage.graphs.generators.random import RandomBipartite as BP
+
+def sigma_tot (graf):
+    sigma_tot = 0
+    for vozlisce in range(len(graf)):
+        for nadaljne in range(vozlisce + 1, len(graf)):
+            sigma_tot += (len(graf[vozlisce])-len(graf[nadaljne]))^2
+    return sigma_tot
+
+def sigma_tot_bp (graf):
+    sigma_tot = 0
+    stopnje = graf.degree_sequence()
+    for vozlisce in range(len(stopnje)):
+        for nadaljne in range(vozlisce + 1, len(stopnje)):
+            sigma_tot += (stopnje[vozlisce]-stopnje[nadaljne])^2
+    return sigma_tot
+def sigma_tot_imp (graf):
+    sigma_tot = 0
+    stopnje = graf.degree_sequence()
+    for vozlisce in range(len(stopnje)):
+        for nadaljne in range(vozlisce + 1, len(stopnje)):
+            sigma_tot += (stopnje[vozlisce]-stopnje[nadaljne])^2
+    return sigma_tot
+
+def spremeni_n_povezav_povezano_splosno (graf, n):
+    i = 0
+    while i < n:#želimo uspešno spremeniti n povezav, iterator i povečamo golj kadar uspešno spremenimo povezavo
+        a = random.choice(range(len(graf)))#naključno izberemo dve vozlišči v grafu
+        b = random.choice(range(len(graf)))
+        if a == b == len(graf)-1:#če dobimo isto vozlišče enega zamenjamo
+            b = a-1
+        elif a== b:
+            b = a+1
+
+        if graf.has_edge((a,b)):#če graf že ima povezavo med vozliščema bomo povezavo izbrisali
+
+            graf.delete_edge(a,b)
+            if graf.is_connected == False:#če graf po izbrisu povezave ni več povezan, povezvo vrnemo
+                graf.add_edge(a,b)# = graf
+            else:
+                i = i+1
+        else:#če povezave v grafu še ni, jo dodamo
+            graf.add_edge(a,b)
+            i = i+1
+
+    return graf
+#SA za splošen poozan graf
+def SA_spreminjanje_enega_grafa (st_vozlisc, T, ponovitve = 1000):#splošen povezan graf
+    scale = np.sqrt(T)
+    faktor = random.uniform(1,st_vozlisc)
+    start = RBA(st_vozlisc, faktor)#naključen graf
+    x = faktor
+    y = start
+    cur = sigma_tot(start)
+    #history = [(x, start, sigma_tot(y))]
+    for i in range(ponovitve):
+        prop = int(min(max(x + np.random.uniform(-1,1,size = 1)*scale, 1),st_vozlisc-0.0001))#izberemo število povezav, ki jih bomo spremenili
+        prop_graf = spremeni_n_povezav_povezano_splosno(st_vozlisc, prop)#spremenimo izbrano število naključnih povezav
+        if np.log(np.random.rand())*T > (sigma_tot(prop_graf)-cur):#preverimo ali je novi graf "dovolj boljši" od prejšnjega
+            prop = x
+            prop_graf = y
+        x = prop
+        y = prop_graf
+        cur = sigma_tot(prop_graf)
+        T = 0.9*T#"hlajenje sistema"
+        #history.append((x,y, sigma_tot(y)))
+    return sigma_tot(y), y.degree_sequence() ,y.show()#, history##history če hočeš, da ti čisto za vse izpiše (nočeš), če maš manjše grafe lahko pogledaš
+
+
+def SA_dvodelni (st_vozlisc, T, ponovitve = 1000):#dvodelen povezan graf
+    scale = np.sqrt(T)
+    faktor = random.uniform(0,1)
+    n1 = randint(1, st_vozlisc-1)
+    n2 = st_vozlisc - n1
+    start = BP(n1, n2, faktor)#naključen dvodelni graf
+    x = [n1, faktor]
+    y = start
+    cur = sigma_tot_bp(start)
+    #history = [(x, start, sigma_tot_bp(y))]
+    for i in range(ponovitve):
+        prop = [int(max(min(floor(x[0] + np.random.uniform(-1,1,size = 1)*
+                             scale), st_vozlisc-1), 1)), float(max(min(x[1] + np.random.uniform(-1,1,size = 1)*scale, 0.999999),0.0000001))]
+        prop_graf = BP(prop[0], st_vozlisc - prop[0], prop[1])
+        if np.log(np.random.rand())*T > (sigma_tot_bp(prop_graf)-cur):
+            prop = x
+            prop_graf = y
+        x = prop
+        y = prop_graf
+        cur = sigma_tot_bp(prop_graf)
+        T = 0.9*T#"hlajenje sistema"
+        #history.append((x,y, sigma_tot(y)))
+
+    return [x[0], (st_vozlisc - x[0])], (min(x[0], st_vozlisc - x[0])/st_vozlisc)#, history, y.is_bipartite()##history če hočeš, da ti čisto za vse izpiše (nočeš), če maš manjše grafe lahko pogledaš
+
+def ugotovi_stopnje (graf):
+    graf_slovar = graf.to_dictionary()
+    for i in graf_slovar:
+        graf_slovar[i] = len(graf_slovar[i])
+
+
+    test_tuplov2 = [(v, k) for k, v in graf_slovar.items()]
+    vozlisce_z_max_stopnjo = max(test_tuplov2)[1]
+    MS = max(test_tuplov2)[0]
+    return MS, vozlisce_z_max_stopnjo
+
+
+def naredi_graf_s_fiksno_max_stopnjo(st_vozlisc, max_stopnja):
+    fac = random.uniform(1,max_stopnj
+    graf = RBA(st_vozlisc, fac)
+
+    MS, vozlisce_z_max_stopnjo = ugotovi_stopnje(graf)
+   
+    if MS > max_stopnja:
+        i = 0
+        j = len(graf)
+
+        while MS > max_stopnja:
+            graf.delete_edge(vozlisce_z_max_stopnjo, i)
+            i = i+1
+
+            if graf.is_connected()==False:
+
+                if i == len(graf):
+                    if vozlisce_z_max_stopnjo == 0:
+                        graf.add_edge(i-1, 1)
+                    else:
+                        graf.add_edge(i-1, 0)
+
+
+                else:
+                    graf.add_edge(i-1, i)
+
+            MS, vozlisce_z_max_stopnjo = ugotovi_stopnje(graf)
+
+    if MS < max_stopnja:
+        i = 0
+        while MS < max_stopnja:
+            graf.add_edge(vozlisce_z_max_stopnjo, i)
+            MS, vozlisce_z_max_stopnjo = ugotovi_stopnje(graf)
+            i = i+1
+    return graf, graf.show(), graf.degree_sequence()
+
+
+
+
+
+
+def spremeni_n_povezav_varno(graf, n, stopnja):
+    i = 0
+    
+    while i < n:
+    
+        a = random.choice(range(len(graf)))
+        b = random.choice(range(len(graf)))
+        if a == b == len(graf)-1:
+            b = a-1
+        elif a== b:
+            b = a+1
+
+        if graf.has_edge((a,b)):
+
+            graf.delete_edge(a,b)
+
+            if graf.is_connected():
+                if graf.degree_sequence()[0]==max_stopnja:
+                    i = i+1
+                else:
+                    graf.add_edge(a,b)
+
+            else:
+                graf.add_edge(a,b)
+
+        else:
+            graf.add_edge(a,b)
+            if graf.degree_sequence()[0]==stopnja:
+
+                i = i + 1
+            else:
+                graf.delete_edge(a,b)
+    return graf#, graf.show()
+
+
+def SA_fiksna_m_stopnja (st_vozlisc, stopnja, T=1, ponovitve = 1000):
+    graf = naredi_graf_s_fiksno_max_stopnjo(st_vozlisc, stopnja)
+    n = max(st_vozlisc-6, 4)*st_vozlisc
+    for i in range(ponovitve):
+        prop = spremeni_n_povezav_varno(graf, n, stopnja)
+        cur = sigma_tot(prop)
+        if 6*T < (sigma_tot(prop)-cur):
+            graf = prop
+        n = ceil(n*T)
+        T = 0.9*T
+    return sigma_tot(graf), graf.degree_sequence(), graf.to_dictionary(), graf.show()
+
+
+
+def test_fix_SA (max_vozlisc, T, minmax, maxmax, ponovitve):
+    seznam = dict()
+    for i in range(1, max_vozlisc):
+        for m_stopnja in range(max(minmax,i), maxmax):
+            sig = SA_fiksna_m_stopnja(i, m_stopnja, T, ponovitve = 1000)
+            seznam[(i, _stopnja)]=sig
+    return seznam
+
+def test_splosni_SA (max_vozlisc, T, ponovitve = 1000):
+    seznam = dict()
+    for i in range(40 , max_vozlisc):
+        sig = SA(i, T, ponovitve)
+        seznam[i]=sig
+    return seznam
+                         
+def test_dvodelni_SA (max_vozlisc, T, ponovitve = 1000):
+    seznam = dict()
+    for i in range(2, max_vozlisc + 1):
+        sig = SA_dvodelni(i, T, ponovitve)
+        seznam[i] = sig
+    return seznam
+
+
+
+
+
+
+
+

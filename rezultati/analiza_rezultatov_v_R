@@ -1,0 +1,197 @@
+library(readxl)
+library(dplyr)
+
+#analiza za grafe s fiksno stopnjo
+################################################################################
+podatki = read_excel("fix_stopnja_testi.xlsx", sheet = 2, col_names = FALSE)
+
+urejeni = podatki %>%
+  setNames(.[1, ]) %>%  
+  slice(-1) %>%
+  mutate_all(as.numeric)
+
+
+# STI in st. vozlisc
+za_narisat1 = urejeni[, c(1, 4)]
+neodvisne = za_narisat1$`st vozlisc`
+odvisne = za_narisat1$STI
+regresijska = lm(odvisne ~ poly(neodvisne, 2, raw = TRUE), data = za_narisat1)
+new_neodvisne = seq(min(neodvisne), max(neodvisne)+ 10, length.out = 100)
+predicted_odvisne = predict(regresijska, newdata = data.frame(neodvisne = new_neodvisne))
+
+png("STI_st_vozlisc.png")
+plot(za_narisat1, type = "l", col = "blue", xlab = "Število vozlišč", 
+     ylab = "Sigma totalna iregularnost",
+     xlim = c(min(za_narisat1$`st vozlisc`), max(new_neodvisne)), 
+     ylim = c(0,100000))
+lines(new_neodvisne, predicted_odvisne, col = "red")
+legend("bottomright", legend = c("STI na št. vozlišč", "Prilagoditveni polinom"), 
+       col = c("blue", "red"), lty = c(1, 1), lwd = 2)
+dev.off()
+
+
+# STI in max stopnja
+za_narisat1 = urejeni[, c(2, 4)]
+neodvisne = za_narisat1$`Max stopnja`
+odvisne = za_narisat1$STI
+regresijska = lm(odvisne ~ poly(neodvisne, 2, raw = TRUE), data = za_narisat1)
+new_neodvisne = seq(min(neodvisne), max(neodvisne)+ 10, length.out = 100)
+predicted_odvisne = predict(regresijska, newdata = data.frame(neodvisne = new_neodvisne))
+
+png("STI_max_stopnja.png")
+plot(za_narisat1, type = "p", col = "blue", xlab = "Maksimalna stopnja", 
+     ylab = "Sigma totalna iregularnost",
+     xlim = c(min(neodvisne), max(new_neodvisne)), 
+     ylim = c(0,100000))
+
+lines(new_neodvisne, predicted_odvisne, col = "red")
+legend("bottomright", legend = c("STI na max stopnjo", "Prilagoditveni polinom"), 
+       col = c("blue", "red"), lty = c(1, 1), lwd = 2)
+dev.off()
+
+# STI in min stopnja
+za_narisat1 = urejeni[, c(3, 4)]
+  neodvisne = za_narisat1$`Min stopnja`
+odvisne = za_narisat1$STI
+regresijska = lm(odvisne ~ poly(neodvisne, 2, raw = TRUE), data = za_narisat1)
+new_neodvisne = seq(min(neodvisne), max(neodvisne)+ 10, length.out = 100)
+predicted_odvisne = predict(regresijska, newdata = data.frame(neodvisne = new_neodvisne))
+
+png("STI_min_stopnja.png")
+plot(za_narisat1, type = "p", col = "blue", xlab = "Minimalna stopnja", 
+     ylab = "Sigma totalna iregularnost",
+     xlim = c(min(neodvisne), max(new_neodvisne)), 
+     ylim = c(0,100000))
+
+lines(new_neodvisne, predicted_odvisne, col = "red")
+legend("bottomright", legend = c("STI na min stopnjo", "Prilagoditveni polinom"), 
+       col = c("blue", "red"), lty = c(1, 1), lwd = 2)
+dev.off()
+
+# max in min stopnja
+za_narisat1 = urejeni[, c(2, 3)]
+neodvisne = za_narisat1$`Max stopnja`
+odvisne = za_narisat1$`Min stopnja`
+regresijska = lm(odvisne ~ poly(neodvisne, 2, raw = TRUE), data = za_narisat1)
+new_neodvisne = seq(min(neodvisne), max(neodvisne)+ 10, length.out = 100)
+predicted_odvisne = predict(regresijska, newdata = data.frame(neodvisne = new_neodvisne))
+
+png("max_min_stopnja.png")
+plot(za_narisat1, type = "p", col = "blue", xlab = "Maksimalna stopnja", 
+     ylab = "Minimalna stopnja",
+     xlim = c(min(neodvisne), max(new_neodvisne)))
+
+lines(new_neodvisne, predicted_odvisne, col = "red")
+legend("bottomright", legend = c("Max na min stopnjo", "Prilagoditveni polinom"), 
+       col = c("blue", "red"), lty = c(1, 1), lwd = 2)
+dev.off()
+
+
+#analiza pri splosnih grafih
+################################################################################
+podatki = read_excel("splosni_grafi_rezultati.xlsx", sheet = 2)
+
+urejeni = podatki[, -5]
+
+# STI in st. vozlisc
+za_narisat1 = urejeni[, c(1, 4)]
+neodvisne = za_narisat1$`st vozlisc`
+odvisne = za_narisat1$STI
+regresijska = lm(odvisne ~ poly(neodvisne, 2, raw = TRUE), data = za_narisat1)
+new_neodvisne = seq(min(neodvisne), max(neodvisne)+ 10, length.out = 100)
+predicted_odvisne = predict(regresijska, newdata = data.frame(neodvisne = new_neodvisne))
+
+png("STI_st_vozlisc_spl.png")
+plot(za_narisat1, type = "l", col = "blue", xlab = "Število vozlišč", 
+     ylab = "Sigma totalna iregularnost",
+     xlim = c(min(za_narisat1$`st vozlisc`), max(new_neodvisne)), 
+     ylim = c(0,200000))
+lines(new_neodvisne, predicted_odvisne, col = "red")
+legend("bottomright", legend = c("STI na št. vozlišč", "Prilagoditveni polinom"), 
+       col = c("blue", "red"), lty = c(1, 1), lwd = 2)
+dev.off()
+
+
+# STI in max stopnja
+za_narisat1 = urejeni[, c(2, 4)]
+neodvisne = za_narisat1$`Max stopnja`
+odvisne = za_narisat1$STI
+regresijska = lm(odvisne ~ poly(neodvisne, 2, raw = TRUE), data = za_narisat1)
+new_neodvisne = seq(min(neodvisne), max(neodvisne)+ 10, length.out = 100)
+predicted_odvisne = predict(regresijska, newdata = data.frame(neodvisne = new_neodvisne))
+
+png("STI_max_stopnja_spl.png")
+plot(za_narisat1, type = "p", col = "blue", xlab = "Maksimalna stopnja", 
+     ylab = "Sigma totalna iregularnost",
+     xlim = c(min(neodvisne), max(new_neodvisne)), 
+     ylim = c(0,200000))
+
+lines(new_neodvisne, predicted_odvisne, col = "red")
+legend("bottomright", legend = c("STI na max stopnjo", "Prilagoditveni polinom"), 
+       col = c("blue", "red"), lty = c(1, 1), lwd = 2)
+dev.off()
+
+# STI in min stopnja
+za_narisat1 = urejeni[, c(3, 4)]
+neodvisne = za_narisat1$`Min stopnja`
+odvisne = za_narisat1$STI
+regresijska = lm(odvisne ~ poly(neodvisne, 2, raw = TRUE), data = za_narisat1)
+new_neodvisne = seq(min(neodvisne), max(neodvisne)+ 10, length.out = 100)
+predicted_odvisne = predict(regresijska, newdata = data.frame(neodvisne = new_neodvisne))
+
+png("STI_min_stopnja_spl.png")
+plot(za_narisat1, type = "p", col = "blue", xlab = "Minimalna stopnja", 
+     ylab = "Sigma totalna iregularnost",
+     xlim = c(min(neodvisne), max(new_neodvisne)), 
+     ylim = c(0,200000))
+
+lines(new_neodvisne, predicted_odvisne, col = "red")
+legend("bottomright", legend = c("STI na min stopnjo", "Prilagoditveni polinom"), 
+       col = c("blue", "red"), lty = c(1, 1), lwd = 2)
+dev.off()
+
+# max in min stopnja
+za_narisat1 = urejeni[, c(2, 3)]
+neodvisne = za_narisat1$`Max stopnja`
+odvisne = za_narisat1$`Min stopnja`
+regresijska = lm(odvisne ~ poly(neodvisne, 2, raw = TRUE), data = za_narisat1)
+new_neodvisne = seq(min(neodvisne), max(neodvisne)+ 10, length.out = 100)
+predicted_odvisne = predict(regresijska, newdata = data.frame(neodvisne = new_neodvisne))
+
+png("max_min_stopnja_spl.png")
+plot(za_narisat1, type = "p", col = "blue", xlab = "Maksimalna stopnja", 
+     ylab = "Minimalna stopnja", main = "Maksimalna vs. minimalna stopnja",
+     xlim = c(min(neodvisne), max(new_neodvisne)))
+
+žlines(new_neodvisne, predicted_odvisne, col = "red")
+legend("bottomright", legend = c("Max na min stopnjo", "Prilagoditveni polinom"), 
+       col = c("blue", "red"), lty = c(1, 1), lwd = 2)
+dev.off()
+
+
+#analiha dvodelnih grafov
+################################################################################
+urejeni = read_excel("dvodelni_grafi_rezultati.xlsx")
+
+#st vozlisc na drugi strani
+za_narisat1 = urejeni[, -c(1,4)] %>%
+  mutate_all(as.numeric)
+  
+neodvisne = za_narisat1$"st vozlisc na eni strani"
+odvisne = za_narisat1$"st vozlisc na drugi strani"
+
+png("razmerje_dv.png")
+plot(za_narisat1, type = "l", col = "blue", xlab = "Število vozlišč na eni strani", 
+     ylab = "Število vozlišč na drugi strani")
+dev.off()
+
+
+# st vozlisc in razmerje
+za_narisat1 = urejeni[, -c(2, 3)]
+neodvisne = za_narisat1$"st vozlisc"
+odvisne = za_narisat1$"razmerje"
+
+png("st_vozlisc_dv.png")
+plot(za_narisat1, type = "l", col = "blue", xlab = "Število vozlišč", 
+     ylab = "Razmerje med številom vozlišč na eni in drugi strani")
+dev.off()

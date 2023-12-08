@@ -1,0 +1,64 @@
+import random
+from random import randint
+from sage.graphs.generators.random import RandomBarabasiAlbert as RBA
+import numpy as np
+
+#izracun STI
+def sigma_tot(graf):
+    sigma_tot = 0
+    for vozlisce in range(len(graf)):
+        for nadaljne in range(vozlisce + 1, len(graf)):
+            sigma_tot += (len(graf[vozlisce]) - len(graf[nadaljne])) ** 2
+    return sigma_tot
+
+
+def spremeni_n_povezav_povezano_splosno(graf, n):
+    i = 0
+    while i < n: #zelimo uspesno spremeniti n povezav, iterator i povečamo golj kadar uspesno spremenimo povezavo
+	#naključno izbere 2 vozlisci
+        a = random.choice(range(len(graf)))
+        b = random.choice(range(len(graf)))
+        if a == b == len(graf) - 1: #ce sta enaki, izberemo drugo
+            b = a - 1
+        elif a == b:
+            b = a + 1
+        if graf.has_edge((a,b)): #ce graf ze ima povezavo med vozliscema bomo povezavo izbrisali
+            graf.delete_edge(a,b)
+            if not graf.is_connected(): #ce graf po izbrisu povezave ni vec povezan, povezvo vrnemo
+                graf.add_edge(a,b)
+            else:
+                i = i + 1
+        else:
+            graf.add_edge(a,b)
+            i = i + 1
+    return graf
+
+
+def SA_spreminjanje_enega_grafa(st_vozlisc, T, ponovitve = 1000):
+    scale = np.sqrt(T)
+    faktor = random.uniform(1, st_vozlisc)
+    start = RBA(st_vozlisc, faktor) #zgenerira random graf z RBA metodo
+    x = faktor
+    y = Graph(start)
+    cur = sigma_tot(start)
+    #history = [(x, start, sigma_tot(y))]
+    for i in range(ponovitve):
+        prop = int(min(max(x + np.random.uniform(-1, 1, size = 1) * scale, 1), st_vozlisc - 0.0001)) #izberemo stevilo povezav, ki jih bomo spremenili
+        prop_graf = spremeni_n_povezav_splosni(y, prop) #spremenimo izbrano stevilo nakljucnih povezav
+        if np.log(np.random.rand()) * T > (sigma_tot(prop_graf) - cur): #preverimo ali je novi graf "dovolj boljsi" od prejsnjega
+            prop = x
+            prop_graf = y
+        x = prop
+        y = prop_graf
+        cur = sigma_tot(prop_graf)
+        T = 0.9 * T #"hlajenje sistema"
+    return sigma_tot(y), y.degree_sequence() #,y.show()
+
+
+
+def test_splosni_SA (max_vozlisc, T, ponovitve = 1000):
+    seznam = dict()
+    for i in range(2, max_vozlisc):
+        sig = SA(i, T, ponovitve)
+        seznam[i] = sig
+    return seznam

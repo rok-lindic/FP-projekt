@@ -1,0 +1,76 @@
+import random
+from sage.graphs.generators.random import RandomBarabasiAlbert as RBA
+
+def sigma_tot_imp(graf):
+    sigma_tot = 0
+    stopnje = graf.degree_sequence()
+    for vozlisce in range(len(stopnje)):
+        sigma_tot += sum((stopnje[vozlisce] - stopnje[nadaljne]) ** 2 for nadaljne in range(vozlisce + 1, len(stopnje)))
+    return sigma_tot
+
+def generiraj_nakljucni_graf_z_maks_stopnjo(st_vozlisc, max_stopnja):
+    graf = RBA(st_vozlisc, 1)
+    while max(graf.degree()) > max_stopnja:
+        vozlisce_z_vecjo_stopnjo = next((v for v in graf.degree_iterator() if graf.degree(v) > max_stopnja), None)
+        if vozlisce_z_vecjo_stopnjo:
+            sosedje = list(graf.neighbors(vozlisce_z_vecjo_stopnjo))
+            sosed = random.choice(sosedje)
+            graf.delete_edge(vozlisce_z_vecjo_stopnjo, sosed)
+            if not graf.is_connected():
+                graf.add_edge(vozlisce_z_vecjo_stopnjo, sosed)
+    while True:    
+        if max(graf.degree()) == max_stopnja:
+            break
+        izbirna_vozlisca = [v for v in graf.vertices() if graf.degree(v) < max_stopnja]
+        if not izbirna_vozlisca:
+            break
+        izbrana_vozlisca = random.sample(izbirna_vozlisca, 2)
+        graf.add_edge(*izbrana_vozlisca)
+    return graf
+
+def spremeni_n_povezav_varno(graf, n):
+    max_stopnja = max(graf.degree())
+    i = 0
+    while i < n:
+        a, b = random.sample(graf.vertices(), 2)
+        if graf.has_edge(a, b):
+            graf.delete_edge(a, b)
+            if graf.is_connected() and max_stopnja == max(graf.degree()):
+                i = i + 1
+            else:
+                graf.add_edge(a, b)
+        else:
+            graf.add_edge(a, b)
+            if max(graf.degree()) == max_stopnja:
+                i = i + 1
+            else:
+                graf.delete_edge(a, b)
+    return graf
+    
+def SA_fiksna_m_stopnja(st_vozlisc, stopnja, T = 1, ponovitve = 1000):
+    graf = generiraj_nakljucni_graf_z_maks_stopnjo(st_vozlisc, stopnja)
+    n = max(st_vozlisc - 6, 4) * st_vozlisc
+    for i in range(ponovitve):
+        prop = spremeni_n_povezav_varno(graf, n)
+        cur = sigma_tot_imp(prop)
+        if 6 * T < (sigma_tot_imp(prop) - cur):
+            graf = prop
+        n = ceil(n * T)
+        T = 0.9 * T
+    return sigma_tot_imp(graf), graf.degree_sequence(), graf.to_dictionary()
+
+def test_fix_SA(st_vozlisc, T, min, max, ponovitve = 1000):
+    seznam = dict()
+    for stopnja in range(min, max):
+        sig = SA_fiksna_m_stopnja(st_vozlisc, stopnja, T, ponovitve)
+        seznam[stopnja] = sig
+    return seznam
+
+def test_max_SA(st_vozlisc, min_st, max_st, T = 1, ponovitve = 1000):
+    seznam = {}
+    for stopnja in range(min_st, max_st+1):
+        sig = SA_fiksna_m_stopnja(st_vozlisc, stopnja, T, ponovitve)
+        seznam.setdefault(stopnja, []).append(sig)
+    max_key = max(seznam, key=lambda k: seznam[k][0][0])
+    max_value = seznam[max_key]
+    return {max_key: max_value}

@@ -60,7 +60,7 @@ def SA_spreminjanje_enega_grafa (st_vozlisc, T, ponovitve = 1000):#splošen pove
     #history = [(x, start, sigma_tot(y))]
     for i in range(ponovitve):
         prop = int(min(max(x + np.random.uniform(-1,1,size = 1)*scale, 1),st_vozlisc-0.0001))#izberemo število povezav, ki jih bomo spremenili
-        prop_graf = spremeni_n_povezav_povezano_splosno(st_vozlisc, prop)#spremenimo izbrano število naključnih povezav
+        prop_graf = spremeni_n_povezav_povezano_splosno(y, prop)#spremenimo izbrano število naključnih povezav
         if np.log(np.random.rand())*T > (sigma_tot(prop_graf)-cur):#preverimo ali je novi graf "dovolj boljši" od prejšnjega
             prop = x
             prop_graf = y

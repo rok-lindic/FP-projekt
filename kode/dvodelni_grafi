@@ -1,0 +1,45 @@
+import random
+from random import randint
+import numpy as np
+from sage.graphs.generators.random import RandomBipartite as BP
+
+def sigma_tot_bp(graf):
+    sigma_tot = 0
+    stopnje = graf.degree_sequence()
+    for vozlisce in range(len(stopnje)):
+        for nadaljne in range(vozlisce + 1, len(stopnje)):
+            sigma_tot += (stopnje[vozlisce] - stopnje[nadaljne]) ** 2
+    return sigma_tot
+
+
+def SA_dvodelni(st_vozlisc, T, ponovitve = 1000):
+    scale = np.sqrt(T)
+    faktor = random.uniform(0, 1)
+    n1 = randint(1, st_vozlisc - 1)
+    n2 = st_vozlisc - n1
+    start = BP(n1, n2, faktor)
+    x = [n1, faktor]
+    y = start
+    cur = sigma_tot_bp(start)
+    for i in range(ponovitve):
+        prop = [int(max(min(floor(x[0] + np.random.uniform(-1, 1, size = 1)*
+                             scale), st_vozlisc - 1), 1)), float(max(min(x[1] + np.random.uniform(-1, 1, size = 1)*scale, 0.999999), 0.0000001))]
+        prop_graf = BP(prop[0], st_vozlisc - prop[0], prop[1])
+        if np.log(np.random.rand()) * T > (sigma_tot_bp(prop_graf) - cur):
+            prop = x
+            prop_graf = y
+        x = prop
+        y = prop_graf
+        cur = sigma_tot_bp(prop_graf)
+        T = 0.9 * T
+	#history.append((x,y, sigma_tot(y)))
+    return [x[0], (st_vozlisc - x[0])], (min(x[0], st_vozlisc - x[0])/st_vozlisc) #y.is_bipartite()
+
+
+
+def test_dvodelni_SA (max_vozlisc, T, ponovitve = 1000):
+    seznam = dict()
+    for i in range(2, max_vozlisc + 1):
+        sig = SA_dvodelni(i, T, ponovitve)
+        seznam[i] = sig
+    return seznam
